@@ -1,0 +1,509 @@
+{
+ "rules": {
+  "R01": {
+   "q": "A line drawn with no mark runs on in line from a marked member (touching it, same direction). What is it?",
+   "options": {
+    "A": "The same member: the mark carries on along the line (same section)",
+    "B": "A different member whose section is not given: leave it out and list it",
+    "C": "Not steel (outline of something else)"
+   },
+   "default": "A",
+   "answer": null
+  },
+  "R02": {
+   "q": "A line drawn with no mark frames between members (not in line with a marked one). What is it?",
+   "options": {
+    "A": "Steel: drawn steel is never left out. Its type first (beam / column / truss member / purlin), then its mark: an upright takes the column in line above / below it, else the side column; others the most similar marked member (same direction, drawn the same way and depth = scale, similar length, then nearest), ASSUMED",
+    "B": "Steel, section not given: leave it out and list it",
+    "C": "Not steel (handrail, grating edge, equipment, opening)"
+   },
+   "default": "B",
+   "answer": "A",
+   "basis": "the curator 2026-11-22 (chat): 'sometimes the member tag is not written, you have to assume, based on the similar member, based on scale'; the curator 2026-11-22 (sample C2.1, p6 grid 4\" SC6): 'if you ever see a steel drawn and confirm they are steel, never miss it out, either you assume it with the nearest or based on above or side column'",
+   "applied": "assemble.similar + Assembler.unmarked (store chain)"
+  },
+  "R03": {
+   "q": "A short piece (under 1 m) with no mark at a column, between the column and a beam. What is it?",
+   "options": {
+    "A": "A stub / bracket of the column (part of the column assembly, section of the beam it carries)",
+    "B": "Drawing detail only (the beam runs to the column; nothing extra)",
+    "C": "A separate member, section not given: leave it out and list it"
+   },
+   "default": "B",
+   "answer": null
+  },
+  "R04": {
+   "q": "A bracing mark with (TYP) on a plan: which braces does it cover?",
+   "options": {
+    "A": "Every brace of the same pattern on that plan, also in bays of a different size",
+    "B": "Only braces of the same length as the labelled one"
+   },
+   "default": "A",
+   "answer": "A",
+   "basis": "the curator 2026-11-22 (chat): '(TYP) means typical ... for all respective joint' (TYP covers every one of the same kind)"
+  },
+  "R05": {
+   "q": "A plan titled with a level range (… BOS TO … TOS): at which level are its members?",
+   "options": {
+    "A": "At the upper (TOS) level of the title",
+    "B": "Each at the level of the elevation / section members it meets (TOS level when none)"
+   },
+   "default": "B",
+   "answer": null
+  },
+  "R06": {
+   "q": "A member is drawn both on a plan and on an elevation, with different end points. Which ends are right?",
+   "options": {
+    "A": "The longer of the two (union)",
+    "B": "The elevation's ends",
+    "C": "The plan's ends"
+   },
+   "default": "A",
+   "answer": null
+  },
+  "R07": {
+   "q": "Stair stringers (SB marks) drawn on a plan: how are they modelled?",
+   "options": {
+    "A": "As drawn on the plan, level at the plan's level",
+    "B": "Left out of this model and listed (the stair's slope comes from its section, not read yet)",
+    "C": "Sloped between the two levels written at the stair"
+   },
+   "default": "B",
+   "answer": null
+  },
+  "R08": {
+   "q": "A read member has an end that meets nothing within reach (its support is not in the reading). What to do?",
+   "options": {
+    "A": "Keep it: run the end on along its own line (up to 6 m) to the member it meets, ASSUMED; an end still meeting nothing: one loose end kept and listed, an isolated line left out (as D)",
+    "B": "Leave the member out and list it (until its support is read)",
+    "C": "Keep it as a cantilever (free end)",
+    "D": "Leave it out only when neither end meets anything (an isolated line); one loose end: keep it, that end listed floating (Cautious)"
+   },
+   "default": "D",
+   "answer": "A",
+   "basis": "the curator 2026-11-22 (chat): 'the members will never float itself, it must be connected to something'; the curator 2026-11-23: sample C4.1 (p8 SC6 on grid C1 / 1, its foot flagged): 'yes you should keep it' - a column's foot at the base stands on its RC pedestal (frame.py BASE_TOL), never floating",
+   "applied": "frame.connect RUN_ON + r08_leave_out (store chain)"
+  },
+  "R09": {
+   "q": "Two different marks are read on exactly the same line in two views (e.g. B4 on the plan, BR2 on a section). Which is it?",
+   "options": {
+    "A": "One member: the mark whose label sits closest to the line",
+    "B": "Two members (both kept)"
+   },
+   "default": "A",
+   "answer": null
+  },
+  "GRID-R01": {
+   "q": "Grids 3A / 3A' / 3B / 4A on p1: their bubbles, lines and dimensions disagree (3A sits 0.8 pt from grid 3; 800 and 4800 are written from 3A). Which positions?",
+   "options": {
+    "A": "As the dimensions read: 3A = 3 + 200, 3A' = 3A + 800, 3B = 3A + 4800, 4A = 4\" + 3500 (29700 / 30500 / 34500 / 43500)",
+    "B": "As scaled off the sheet (3A 30300, 3A' 30300, 3B 36700, 4A 43500)"
+   },
+   "default": "A",
+   "answer": null
+  },
+  "SCHED-R01": {
+   "q": "A mark listed twice in the schedule with two sizes (BR6: UB254x146x31 with B4, UA80x80x8 with B17). Which size?",
+   "options": {
+    "A": "The heavier (UB254x146x31)",
+    "B": "The lighter (UA80x80x8)"
+   },
+   "default": "A",
+   "answer": null
+  },
+  "SCHED-R02": {
+   "q": "Truss A's bottom chord is marked BC, which the schedule does not list. Its section?",
+   "options": {
+    "A": "As its top chord TC (UC254x254x167)",
+    "B": "As BC1 of the other trusses (UC254x254x89)"
+   },
+   "default": "A",
+   "answer": null
+  },
+  "COL-R01": {
+   "q": "A column label whose leader reaches no symbol, and a column symbol no label reaches, on the column layout. Pair them?",
+   "options": {
+    "A": "Yes: the label goes to the nearest symbol nobody else names",
+    "B": "No: the symbol is left out and listed"
+   },
+   "default": "A",
+   "answer": null
+  },
+  "R10": {
+   "q": "A member runs over a support and stops a short way past it (e.g. a truss chord 500 past its eave column). What is the end?",
+   "options": {
+    "A": "A drawn overhang: kept as a cantilever end",
+    "B": "An unsupported end: the member is left out (R08)"
+   },
+   "default": "A",
+   "answer": null
+  },
+  "CRANE-R01": {
+   "q": "The crane runway beam is labelled by name (CRANE RUNWAY BEAM TYP., p21 / p22) with no mark or size. Its section?",
+   "options": {
+    "A": "B22 UB914x305x253 (the heavier of the two crane-size beams in the schedule)",
+    "B": "B23 UB838x292x226"
+   },
+   "default": "A",
+   "answer": null
+  },
+  "NAME-R01": {
+   "q": "A member named in words (CRANE RUNWAY BEAM TYP.) whose leader is not followed to a line. Which line is it?",
+   "options": {
+    "A": "The nearest long level line running past the label (and the lines in line with it, TYP)",
+    "B": "Left out and listed"
+   },
+   "default": "A",
+   "answer": null
+  },
+  "R11": {
+   "q": "An unmarked level line continues a marked one in the next bay, broken only at a support (a gap up to 1.2 m at a column). What is it?",
+   "options": {
+    "A": "The same member in the next bay (same mark)",
+    "B": "Left out and listed (size not given)"
+   },
+   "default": "A",
+   "answer": null
+  },
+  "SCHED-R03": {
+   "q": "A mark on the drawings is not in the schedule but its base is (BC1a, schedule has BC1). Its section?",
+   "options": {
+    "A": "The base mark's section (BC1a = BC1)",
+    "B": "Left out and listed"
+   },
+   "default": "A",
+   "answer": null
+  },
+  "SCALE-R01": {
+   "q": "A view's grid bubbles all agree on one scale that differs from the scale written under its title. Which scale?",
+   "options": {
+    "A": "The bubbles' scale (the drawing is placed by its grids)",
+    "B": "The written scale (the view is refused)"
+   },
+   "default": "A",
+   "answer": null
+  },
+  "VIEW-R01": {
+   "q": "A section shows one grid bubble only: which way does it face (grid values growing left to right, or right to left)?",
+   "options": {
+    "A": "Left to right (as the plan's grid order)",
+    "B": "Right to left (mirrored about that grid)"
+   },
+   "default": "A",
+   "answer": null
+  },
+  "VIEW-R02": {
+   "q": "A bracing truss view has no level marker (p3 ROOF TRUSS B / C): where is its top?",
+   "options": {
+    "A": "Its top flush with the top of the main roof trusses' top chord where it crosses them",
+    "B": "Its top line on the main top chord's centre line"
+   },
+   "default": "A",
+   "answer": null
+  },
+  "VIEW-R03": {
+   "q": "A plan shows grid bubbles on one axis only (p22 crane access platform); the sheet's elevation names grids 2 & 4. Its column row is on which grid?",
+   "options": {
+    "A": "Both (one platform on each)",
+    "B": "The first named only",
+    "C": "The second named only"
+   },
+   "default": "A",
+   "answer": null
+  },
+  "SIZE-R01": {
+   "q": "A member drawn to size (outline) carries a mark whose section is far off its drawn depth (C4 = L100 beside a 544 deep B21 chord). Which member does the mark name?",
+   "options": {
+    "A": "The nearest unmarked line at the label (the web)",
+    "B": "The outline (as paired)"
+   },
+   "default": "A",
+   "answer": null
+  },
+  "HIDDEN-R01": {
+   "q": "A line is stored from the PDF but the page does not show it (outside its viewport clip, or under a later white / other-colour fill). Is it read?",
+   "options": {
+    "A": "Not read: only pieces at least half shown are drawing (store vis flag)",
+    "B": "Read as drawn"
+   },
+   "default": "A",
+   "answer": "A",
+   "basis": "the curator's finding (store keeps hidden ink, e.g. masked grid lines); a hidden line is never steel",
+   "applied": "store.py VIS_MIN, Sheet.segs (every reader)"
+  },
+  "BOX-R01": {
+   "q": "A short outlined box (up to 2.2 m) lies on a longer member line, with a mark written by it (a section symbol / label box). What is the box?",
+   "options": {
+    "A": "Not steel: the mark by it names the member line it lies on",
+    "B": "A short member of that mark"
+   },
+   "default": "A",
+   "answer": "A",
+   "basis": "the curator D39 (Turbine grid 2' SHD+22.230: B3a built only as 1.6 m label stubs)",
+   "applied": "view_read_store.label_boxes"
+  },
+  "BAY-R01": {
+   "q": "A level line drawn through several bays carries different marks along it, with no break drawn between them. How is it read?",
+   "options": {
+    "A": "Split at the grid lines between the marks; each bay takes the mark nearest to it",
+    "B": "One member with one mark"
+   },
+   "default": "A",
+   "answer": "A",
+   "basis": "the curator D39",
+   "applied": "view_read_store.split_marks (grids)"
+  },
+  "SIZE-R02": {
+   "q": "A member is labelled with a size on a detail / truss elevation where its drawn width agrees, while the plan or the legend table gives another section. Which section?",
+   "options": {
+    "A": "The label on the member in the view (written size whose drawn width agrees)",
+    "B": "The plan / legend table"
+   },
+   "default": "A",
+   "answer": "A",
+   "basis": "the curator D18 / D23 / D31: 'we always prioritize those members with a clear member size'",
+   "applied": "not yet in the store chain (job-a model only)"
+  },
+  "TRUSS-R02": {
+   "q": "Truss diagonals: in which direction is each one built?",
+   "options": {
+    "A": "As drawn, panel by panel (read each diagonal)",
+    "B": "A standard pattern (Pratt / Warren) per half"
+   },
+   "default": "A",
+   "answer": "A",
+   "basis": "the curator D19: read each diagonal, never assume a pattern",
+   "applied": "store chain reads each drawn diagonal (components.py)"
+  },
+  "CONN-R01": {
+   "q": "A joint is drawn bolted. How is it built?",
+   "options": {
+    "A": "Plates and bolts drawn in a view: modelled as drawn; a bolted symbol with no detail anywhere: welded, zero gap, listed under Left out",
+    "B": "Typical connections sized by Claude (ASSUMED)"
+   },
+   "default": "A",
+   "answer": "A",
+   "basis": "the curator D02 / D20 (standing rule: only welded or bolted)",
+   "applied": "gate check (tools/job.py); store chain builds welded, Left out"
+  },
+  "SCOPE-R01": {
+   "q": "Structure of other trades (RC pedestals, slabs, walls) is drawn beside the steel. Is it shown?",
+   "options": {
+    "A": "Yes, as ghosts, one layer per kind (no steel tonnage)",
+    "B": "Not shown"
+   },
+   "default": "A",
+   "answer": "A",
+   "basis": "the curator D07",
+   "applied": "not yet in the store chain (job-a model only)"
+  },
+  "LEVEL-R01": {
+   "q": "A member drawn as a single line on a plan / elevation at a TOS level: where is its centre?",
+   "options": {
+    "A": "h/2 below the drawn line (the line is the top of steel)",
+    "B": "On the drawn line"
+   },
+   "default": "A",
+   "answer": "A",
+   "basis": "the curator walkthrough D24",
+   "applied": "assemble.py levels (store chain)"
+  },
+  "GRID-R02": {
+   "q": "A grid position differs between the grid table and the drawings (bubbles on two plans and a dimension chain agree on another value). Which?",
+   "options": {
+    "A": "The drawings (bubbles + dimension chain)",
+    "B": "The table"
+   },
+   "default": "A",
+   "answer": null,
+   "basis": "precedent D09 (Turbine D2 = 23800)",
+   "applied": "not yet in the store chain"
+  },
+  "VIEW-R04": {
+   "q": "A view title names its grid lines (ALONG GRID LINE 2', 4''). Where is the view placed?",
+   "options": {
+    "A": "On each grid named in the title, its depth scaled off the view",
+    "B": "On the nearest main grid, depth from the template"
+   },
+   "default": "A",
+   "answer": null,
+   "basis": "precedent D12",
+   "applied": "register.py places views by title grids"
+  },
+  "COL-R02": {
+   "q": "A vertical line with a column mark on an elevation has no column of the layout plan within 500 mm. What is it?",
+   "options": {
+    "A": "A column: base at BOS, top as drawn (listed)",
+    "B": "Left out"
+   },
+   "default": "A",
+   "answer": null,
+   "basis": "precedent D14",
+   "applied": "assemble.columns (extra column lines)"
+  },
+  "END-R01": {
+   "q": "A column's top in the reading is assumed or reaches past what it carries. Where does it stop?",
+   "options": {
+    "A": "Under the member drawn on it in the elevation",
+    "B": "At the assumed level"
+   },
+   "default": "A",
+   "answer": null,
+   "basis": "precedent D15 / D16",
+   "applied": "frame.py column tops"
+  },
+  "END-R02": {
+   "q": "A read end does not reach the steel it frames into (a gap or overshoot up to 1.5 m where the drawn line stops at a label or tick). What is done?",
+   "options": {
+    "A": "Within 400 mm: moved onto the member's centre line; an overshoot: trimmed back along its own line to the first steel it meets (<= 1500)",
+    "B": "Left as read (floating)"
+   },
+   "default": "A",
+   "answer": null,
+   "basis": "precedent D32 / D36 (drawn gaps are drawing convention)",
+   "applied": "frame.py joins ends within reach"
+  },
+  "MARK-R02": {
+   "q": "One member is read twice (a joined run and its labelled piece, both outline faces, a plan and an elevation copy). How many members?",
+   "options": {
+    "A": "One: collinear in a view the longer stays, a different mark keeps its own extent; parallel copies inside each other are one",
+    "B": "Both kept"
+   },
+   "default": "A",
+   "answer": null,
+   "basis": "precedent D27",
+   "applied": "assemble.merge (R06 / R09)"
+  },
+  "LAYER-R01": {
+   "q": "A sheet carries steel members, purlins, dimensions, grids, handrail, grating, RC and other trades on their own CAD layers. Which lines does a member pass read?",
+   "options": {
+    "A": "One kind at a time: the structure pass hides purlin, annotation (dims, text, grids, title) and other trades' layers; the purlin pass reads purlin / girt layers only. A layer whose name says nothing is kept",
+    "B": "Every drawn line in every pass"
+   },
+   "default": "A",
+   "answer": "A",
+   "basis": "the curator 2026-11-22 (chat): 'when you reading the purlin, you hide all the other unrelated lines ... when you do structures you hide all the purlin lines'",
+   "applied": "store.layer_class / Sheet.pass_mask; view_read_store.member_segs (lines, outline_lines). Purlin pass: filter ready, purlins not yet read by the store chain"
+  },
+  "CONN-R02": {
+   "q": "A connection detail is drawn once with a callout (and often (TYP)). Where is it built?",
+   "options": {
+    "A": "At the joint its callout / section mark points to; marked (TYP): at every joint of the same kind (same members meeting the same way) in the building",
+    "B": "Only at the joint the callout points to"
+   },
+   "default": "A",
+   "answer": "A",
+   "basis": "the curator 2026-11-22 (chat): 'Connections Details to the correct joint location. it will state (TYP) means typical connections for all respective joint'",
+   "applied": "job-a model by hand (purlin cleats TYP at every purlin x top chord crossing); store chain: not yet (connections Left out, CONN-R01)"
+  },
+  "VIEW-R05": {
+   "q": "A truss view has no level marker and no grid of its own across it (p3 bracing trusses SECTION FOR ROOF TRUSS B1 TO B5 / C1 & C5). Where along the main trusses does it stand?",
+   "options": {
+    "A": "Where the main trusses it names (ROOF TRUSS A / A1 / A2 at its posts) are as deep as it is (its written depth, else scaled): at that panel point, nearest its plan label",
+    "B": "At its label on the roof plan"
+   },
+   "default": "A",
+   "answer": "A",
+   "basis": "the curator 2026-11-22 (chat, p3 bracing trusses): one storey so the trusses are at the roof; the view names grids 2' / 4'' and ROOF TRUSS A / A1 / A2 at its posts (it sits on them); the two sections differ in depth (3219 / 2482 c/c) and, scaled against the A1 truss view where it shows their I sections, 3219 is at the ridge and 2482 at the panel points 8000 from grids 2 / 4",
+   "applied": "assemble.place_no_level (view_depth, named_hosts, station_by_depth); register.elev_views cuts stacked views between their extents (marks down to own title)"
+  },
+  "COL-LEVEL": {
+   "q": "A column / post mark (SC6, C1) is written level beside an upright line drawn as a single line. Does it label that line?",
+   "options": {
+    "A": "Yes: an upright line + a column mark beside it = that column (after every mark written along its own line is placed)",
+    "B": "No: only marks written along a line label it"
+   },
+   "default": "A",
+   "answer": "A",
+   "basis": "the curator 2026-11-22 (sample C2.1, p6 grid 4\" SC6): 'first I decide whether it's a beam or column ... in this case it's a column ... it's SC6' (the mark at the column foot was missed)",
+   "applied": "view_read_store.pair (UPRIGHT_MARK, LAST): Turbine elevations 1,036 -> 1,175 marked lines; column marks no longer sit on level beams"
+  },
+  "SYMBOL-R01": {
+   "q": "A line belongs to an annotation: the underline of a title / words, or the bar of a section / detail marker (through its bubble). Is it steel?",
+   "options": {
+    "A": "Never steel: an underline (under big text) and a marker bar (through a bubble's centre, ending within 2.2 r of it) are set aside before reading",
+    "B": "Read like any line"
+   },
+   "default": "A",
+   "answer": "A",
+   "basis": "the curator 2026-11-23 (sample C2.2, p10): 'This line below the words ... is the underline of it, anything like this are never consider steel' (the C2.2 line was the bar of the S3 section marker)",
+   "applied": "view_read_store._read: title underlines (title_underlines) + marker bars (marker_bars, circles()); Turbine: 77 marker bars in 22 views"
+  },
+  "LEGEND-R01": {
+   "q": "A sheet has a legend: a short line sample with words beside it (magenta dash-dot = MS HANDRAIL on p10). What are the lines of that style?",
+   "options": {
+    "A": "That thing, on that sheet: every line of the sample's colour + pen is read as it (handrail runs listed per view, never members); a style shared by two legend entries decides nothing",
+    "B": "Ignored"
+   },
+   "default": "A",
+   "answer": "A",
+   "basis": "the curator 2026-11-23 (sample C2.2, p10): 'below it shows a dotted line in purple, it means in this page the purple dotted line refers to handrail. You can find all these dotted line in this page'",
+   "applied": "view_read_store.legend / legend_lines -> fit.legend + fit.legend_lines per view (p10, 11, 14, 16 MS HANDRAIL); not yet built as handrail in the model / MTO"
+  },
+  "COL-TOP": {
+   "q": "A column stands on the ground or on a platform and nothing frames into its top. Is its top floating?",
+   "options": {
+    "A": "No: a column standing on its foot may end with a free top as drawn (stated, kept, never run on to a member above)",
+    "B": "Yes: list it as floating / run it on"
+   },
+   "default": "A",
+   "answer": "A",
+   "basis": "the curator 2026-11-23: 'if it's a column, it can just stand alone as 1 end is touching the ground or platform, so the top could end without any member attaching to it'",
+   "applied": "frame.connect: column feet at the base on RC; free tops for columns standing on their foot; no run-on for a column top"
+  },
+  "NAME-R02": {
+   "q": "A member is named in words with a leader (MONORAIL & HOIST) and has no mark. Is it modelled, and at what size?",
+   "options": {
+    "A": "Steel, modelled first: its size from the tag or section written in its note; else the tag / size found with that name elsewhere in the set (most found); else by scale, the section of the most similar marked member in its view (ASSUMED)",
+    "B": "Left out until a size is found"
+   },
+   "default": "A",
+   "answer": "A",
+   "basis": "the curator 2026-11-23: 'this is an i beam, so this is a steel too. you have to model it in, even if you can't find its member tag ... model it in first ... If no size found after going through the whole drawing just assume it by scaling, prioritize using the existing member ... nearest or most similar one'",
+   "applied": "view_read_store.NAMED / named_mark / named_sizes; assemble.candidates (written section, most similar member); Turbine p24 monorail = UC152X152X37; end-on monorails in elevations (p6-p8, p18) wait for the plan that shows their run"
+  },
+  "SPLICE-R01": {
+   "q": "A small rectangle / square with an X in it is drawn on a member line. What is it?",
+   "options": {
+    "A": "A splice joint (bolted connection): the member runs through it as one member, the splice is kept on the member; the X is never steel",
+    "B": "A break: two members"
+   },
+   "default": "A",
+   "answer": "A",
+   "basis": "the curator 2026-11-23: 'If you ever see this mark, rectangle or square with an X inside, it refers to a splice joint, a kind of bolting connection joint'",
+   "applied": "view_read_store.splice_boxes + join (rows carry splices); Turbine: 146 splice symbols, 69 members no longer broken at a splice; splice plates not built (CONN-R01: listed)"
+  },
+  "R12": {
+   "q": "An unmarked line (1 m or longer) on an elevation or section has both ends on marked members (drawn framing). What is it?",
+   "options": {
+    "A": "Steel: the section of the nearest marked member of the same direction in the view (ASSUMED)",
+    "B": "Left out and listed (size not given)"
+   },
+   "default": "A",
+   "basis": "precedent D25 (Turbine); the curator 2026-11-23: sample C2.6 'yes c4 is correct, it's the mark that near to it'",
+   "answer": "A"
+  },
+  "MARK-TYPE": {
+   "q": "On an elevation / section, which way does a marked member run?",
+   "options": {
+    "A": "As its letters say: C / SC (column) upright, BR (bracing) diagonal, B (beam) level; a mark never labels a line running the other way; BR.. (TYP) = every diagonal of that truss",
+    "B": "Any line nearest the mark"
+   },
+   "default": "A",
+   "answer": "A",
+   "basis": "the curator 2026-11-23: C2.6: 'C refers to column ... vertical member. BR1 means bracing and it state TYP ... all the bracing member (diagonal member of truss) are all the same. B21 refer to beam, here means horizontal members'",
+   "applied": "view_read_store.type_ok in pair (elevations / sections), typ_fill (BR TYP: all diagonals 0.5-2x its length); Turbine elevations 1,176 -> 1,191 marked lines"
+  },
+  "LEADER-R01": {
+   "q": "A note (HANGER / B2d (TYP), B3 / MONORAIL BEAM) has an arrow leaving from one of its lines. Which member does its tag name?",
+   "options": {
+    "A": "The member the arrow points at, whichever line of the note the arrow leaves from",
+    "B": "Only an arrow leaving from the tag word itself"
+   },
+   "default": "A",
+   "answer": "A",
+   "basis": "the curator 2026-11-23: 'just follow the arrow, it shows which tag refer to which member' (p19 HANGER B2d, B3 MONORAIL BEAM)",
+   "applied": "view_read_store.leaders (note_block); p19 notes lie outside its only read view (SECTION S3, not placed): not yet modelled there"
+  }
+ }
+}

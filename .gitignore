@@ -1,0 +1,6 @@
+jobs/
+out/
+__pycache__/
+*.pyc
+*.tmp
+generate-model/tests/out/

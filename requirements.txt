@@ -1,0 +1,8 @@
+# python teach.py setup installs these (core first; the last two only for scanned / outlined-text sheets)
+pymupdf
+numpy
+shapely
+matplotlib
+pillow
+rapidocr-onnxruntime
+potracer
