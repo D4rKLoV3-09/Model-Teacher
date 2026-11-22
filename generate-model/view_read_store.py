@@ -411,6 +411,7 @@ def _marks(words, mark_re):
         m = re.fullmatch(rf"({mark_re})\s*(\(?TYP\.?\)?)?", w[4])
         if m and w[6] < 12:                       # grid bubbles are the big text
             out.append((w, m.group(1), bool(m.group(m.lastindex)) if m.lastindex > 1 else False))
+            continue
         elif w[6] < 12:
             nm = named_mark(words, w, mark_re)
             if nm:
@@ -927,10 +928,15 @@ def calibrate_elev(sheet, box, H, scale, datum, fallback=False, no_level="raise"
         sz, uz, dz, rz = -stated, [lv[0][2]], [], 0.0
         oz = lv[0][1] + stated * lv[0][0]
     elif no_level == "relative":
-        s_ = sheet.segs
-        inb = s_[(s_[:, 0] >= box[0]) & (s_[:, 2] <= box[2]) & (s_[:, 1] >= box[1]) & (s_[:, 3] <= box[3]) & (abs(s_[:, 1] - s_[:, 3]) < 0.3)
-                 & (abs(s_[:, 2] - s_[:, 0]) > 100)]
-        top = float(inb[:, 1].min()) if len(inb) else box[1]
+        # the top member line (job review R04: the widened box took a dimension line 4 m above the truss as its top):
+        # long level member lines only - member pieces (layer pass, member pen >= 0.5 pt) and filled member bars
+        s_ = member_segs(sheet)
+        s_ = s_[(s_[:, 5:8].max(1) < 0.15) & (s_[:, 4] >= 0.5)]
+        q_ = sheet.quad
+        lv_ = [(float(r[1]), float(r[0]), float(r[2])) for r in s_] + [(float(r[1]), float(r[0]), float(r[2])) for r in q_ if 0.4 <= r[4] <= 2.4]
+        lv_ = [y for y, xa, xb in lv_ if box[0] <= min(xa, xb) and max(xa, xb) <= box[2] and box[1] <= y <= box[3] and abs(xb - xa) > 100]
+        lvq = [float(r[1]) for r in list(s_) + [r for r in q_ if 0.4 <= r[4] <= 2.4] if abs(float(r[1]) - float(r[3])) < 0.3]
+        top = min((y for y in lv_ if y in lvq), default=box[1])
         sz, oz, uz, dz, rz = -stated, stated * top, ["top line = 0 (VIEW-R02)"], [], 0.0
     else:
         raise ValueError("needs placement: no level marker in the view")

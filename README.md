@@ -23,7 +23,7 @@ this link. The rules from every user are compared and the best ones are merged i
 ## What you will see
 - **The model page** (an HTML file): rotate, select members, read sizes and marks; opens in any browser.
 - **The ruling sheet**: every reading Claude was unsure of, grouped by kind, with a crop of your drawing beside each option.
-  Answer by letter ("C4 A") or say in words what is wrong ("this line is a dimension, not a brace").
+  Answer a question by its number ("5 B") or say in words what is wrong ("this line is a dimension, not a brace").
 - After each correction: what changed (members, tonnes) and what the model still misses.
 
 ## Your drawings

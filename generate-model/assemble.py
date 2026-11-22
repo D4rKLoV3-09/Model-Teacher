@@ -380,7 +380,8 @@ class Assembler:
                     self.fate[r["id"]] = "placed outside the building"
                     continue
                 out.append({"mark": mk, "a": a, "b": b, "kind": kind, "outline": r.get("kind") == "outline", "truss": truss,
-                            "src": f"p{v['sheet']} {v['title'][:48]}" + (f" ({v['where']})" if v.get("where") else ""),
+                            "src": f"p{v['sheet']} {v['title'][:48]}" + (f" ({v['where']})" if v.get("where") else "")
+                                   + (f" [{r['status']}]" if re.search(r"ASSUMED|\b(R\d\d|[A-Z]+-R\d\d) [A-D]\b|NAME-R", str(r.get("status"))) else ""),
                             "rid": r["id"], "range": rng, "loff": r.get("label_off") or 99, "sheet": v["sheet"],
                             "a_pt": r["a_pt"], "b_pt": r["b_pt"], "view": v["title"], "where": v.get("where", ""),
                             "tat": [v.get("axis"), v.get("at")] if truss else None})

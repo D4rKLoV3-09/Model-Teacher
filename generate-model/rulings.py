@@ -165,11 +165,12 @@ def sheet(work, out=None, parts=None):
 
 
 def answer(work, key, letter, note=""):
-    """the curator's letter for a rule (R08), a sample (C4.2: its rule) or a category (C4: every open rule in it with that option)."""
+    """the curator's letter for a question by its number on the sheet (5: its rule), a rule (R08), an old-style sample (C4.2) or a
+    category (C4: every open rule in it with that option)."""
     import re as _re
     R = load()
     letter = letter.upper()
-    if _re.fullmatch(r"C\d+\.\d+", key):
+    if _re.fullmatch(r"\d+|C\d+\.\d+", key):
         rids = [json.loads((Path(work) / "rulings/samples.json").read_text(encoding="utf-8"))[key]]
     elif _re.fullmatch(r"C\d+", key):
         rids = [r for r in json.loads((Path(work) / "rulings/categories.json").read_text(encoding="utf-8")).get(key, [])

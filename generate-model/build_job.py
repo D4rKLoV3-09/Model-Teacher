@@ -279,9 +279,9 @@ for v in REG_E:                                             # VIEW-R02: a truss 
     tops = []
     for tv, r in tc_rows:
         a_, b_ = r["a"], r["b"]
-        if tv["axis"] == v["axis"] or not min(a_[fixed], b_[fixed]) <= v["at"] <= max(a_[fixed], b_[fixed]) or abs(a_[fixed] - b_[fixed]) < 1:
-            continue
-        t_ = (v["at"] - a_[fixed]) / (b_[fixed] - a_[fixed])
+        if tv["axis"] == v["axis"] or not min(a_[fixed], b_[fixed]) - 100 <= v["at"] <= max(a_[fixed], b_[fixed]) + 100 or abs(a_[fixed] - b_[fixed]) < 1:
+            continue                                            # (100 mm: a chord half stops short of the ridge post, VIEW-R05)
+        t_ = min(max((v["at"] - a_[fixed]) / (b_[fixed] - a_[fixed]), 0.0), 1.0)
         zc = a_[2] + t_ * (b_[2] - a_[2])
         h_ = profile(SCHED[r["mark"]])["h"] if r["mark"] in SCHED else 0
         tops.append(zc + (h_ / 2 if rulings.choice("VIEW-R02") == "A" else 0))

@@ -298,7 +298,7 @@ main{max-width:1060px;margin:auto}h1{font-size:22px;margin:4px 0}h2{font-size:18
 .cat{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:14px 0}
 .cov{color:var(--mute);margin:2px 0 6px}.nums{font-size:13px;margin:4px 0}.nums b{font-variant-numeric:tabular-nums}
 .tw{overflow-x:auto}.rules{font-size:13px;margin:6px 0;border-collapse:collapse;width:100%}.rules td{border-top:1px solid var(--line);padding:3px 6px;vertical-align:top}
-.s{border-top:1px solid var(--line);padding-top:8px;margin-top:8px}.sid{font-weight:700;color:var(--acc)}
+.s{border-top:1px solid var(--line);padding-top:8px;margin-top:8px}.q{margin:0 0 2px;font-weight:600}.sid{font-weight:700;color:var(--acc)}
 .pics{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0}.pics img{width:300px;max-width:100%;border:1px solid var(--line);border-radius:4px;display:block}.pics img.wide{width:608px}
 .opt{margin:2px 0}.opt.def{color:var(--def);font-weight:600}.eff{font-variant-numeric:tabular-nums;color:var(--acc);font-weight:600}
 details{margin-top:8px}summary{cursor:pointer;color:var(--mute);font-size:13px}.dl{font-size:12.5px;margin:4px 0 0;padding-left:0;list-style:none}
@@ -308,6 +308,14 @@ details{margin-top:8px}summary{cursor:pointer;color:var(--mute);font-size:13px}.
 
 def learnt_any(R, k):
     return any((r.get("basis") or r.get("answer")) and cat_of_rule(rid) == k for rid, r in R.items())
+
+
+_CODE = re.compile(r"\s*\((?:R\d\d|[A-Z]+-R\d\d)(?: [A-D])?\)")
+
+
+def _plain(s):
+    """Text shown to the curator without rule codes (the curator 2026-11-23: no rule numbers in the questions)."""
+    return _CODE.sub("", str(s))
 
 
 def _page_of(work):
@@ -401,12 +409,13 @@ def build(work, R, C, root, out, parts_path=None, page_html=None):
     n_cases = len(openC)
     html.append(f"<h1>Ruling sheet{' &middot; ' + H.escape(job) if job else ''}</h1>"
                 f"<p class=how>{len(D)} decisions and {n_cases} open cases on {len({c['rule'] for c in openC})} rules, in {len([k for k in CATS if by_cat[k[0]] or dec_cat[k[0]]])} kinds of "
-                f"drawing situation. The job is built with the <b style='color:var(--def)'>default</b>. Answer by category "
-                f"(<b>C4 A</b>: every open rule in C4), by sample (<b>C4.2 B</b>: that sample's rule), by rule (<b>R08 A</b>) "
-                f"or change a decision by number (<b>D09 B</b>). An answered rule becomes standing for every later job.</p>")
+                f"drawing situation. The job is built with the <b style='color:var(--def)'>default</b>. Answer a question by its "
+                f"number (<b>5 B</b>: that question, all its cases), a whole category (<b>C4 A</b>) or change a decision "
+                f"(<b>D09 B</b>). An answer becomes standing for every later job.</p>")
     html.append("<nav class=toc>" + "".join(f"<a href='#{k}'>{k} {H.escape(t)} &middot; {len(by_cat[k]) + len(dec_cat[k])}</a>"
                                            for k, t, *_ in CATS if by_cat[k] or dec_cat[k] or learnt_any(R, k)) + "</nav>")
     n_shown = 0
+    n_num = 0                                           # sample numbers run through the whole sheet
     shots = {}                                          # token -> (part indices, drawn still): model page screenshots
     learnt = defaultdict(list)                          # standing rules mined from decisions (basis) or answered by the curator
     for rid, r in R.items():
@@ -419,31 +428,24 @@ def build(work, R, C, root, out, parts_path=None, page_html=None):
         rids = sorted({c["rule"] for c in cs}, key=lambda r: -len([c for c in cs if c["rule"] == r]))
         html.append(f"<section class=cat id={k}><h2>{k} &middot; {H.escape(title)}</h2><p class=cov>{H.escape(covers)}</p>"
                     f"<p class=nums><b>{len(cs)}</b> open case(s) on <b>{len(rids)}</b> rule(s); <b>{len(ds)}</b> decision(s) taken</p>")
-        if rids:
-            rows = []
-            for rid in rids:
-                r = R[rid]
-                rc = [c for c in cs if c["rule"] == rid]
-                tot = defaultdict(float)
-                known = 0
-                for c in rc:
-                    if c.get("_eff"):
-                        known += 1
-                        for L_, v in c["_eff"].items():
-                            tot[L_] += v
-                opts = "; ".join(f"<span class='{'opt def' if L_ == r['default'] else 'opt'}'>{L_} {H.escape(v[:90])}"
-                                 + (f" <span class=eff>{_t(tot[L_])}</span>" if known and L_ != r["default"] else "")
-                                 + ("</span>" if True else "") for L_, v in r["options"].items())
-                rows.append(f"<tr><td><b>{rid}</b></td><td>{len(rc)}</td><td>{H.escape(r['q'])}<br>{opts}"
-                            + (f" <span class=n>(tonnage over {known} of {len(rc)} cases)</span>" if known and known < len(rc) else "") + "</td></tr>")
-            html.append("<div class=tw><table class=rules>" + "".join(rows) + "</table></div>")
+        allc = {}                                       # per rule: case count + tonnage of each option over its cases
+        for rid in rids:
+            rc = [c for c in cs if c["rule"] == rid]
+            tot, known = defaultdict(float), 0
+            for c in rc:
+                if c.get("_eff"):
+                    known += 1
+                    for L_, v in c["_eff"].items():
+                        tot[L_] += v
+            allc[rid] = (len(rc), tot, known)
         # samples: per rule, more when its cases differ; the category capped
         chosen = []
         for rid in rids:
             chosen += pick([c for c in cs if c["rule"] == rid], 3 if len(rids) <= 2 else 2)
         chosen = chosen[:MAX_SAMPLES]
-        for i, c in enumerate(chosen, 1):
-            sid = f"{k}.{i}"
+        for c in chosen:
+            n_num += 1
+            sid = str(n_num)                            # the curator: samples numbered 1, 2, 3 ... through the sheet
             samples[sid] = c["rule"]
             r = R[c["rule"]]
             pics = []
@@ -464,16 +466,20 @@ def build(work, R, C, root, out, parts_path=None, page_html=None):
                     pics.append(f"<img alt='3D model, selected' src='{tok}'>")
                 elif img:
                     pics.append(f"<img alt='3D as built' src='{img}'>")
+            n_rc, tot, known = allc.get(c["rule"], (1, {}, 0))
             opts = []
             for L_, v in r["options"].items():
                 rd = c["readings"].get(L_)
                 txt = rd if isinstance(rd, str) else ""
                 eff = (c.get("effect") or {}).get(L_) or (_t(c["_eff"][L_]) if c.get("_eff") and L_ != r["default"] else "")
-                opts.append(f"<div class='{'opt def' if L_ == r['default'] else 'opt'}'><b>{L_}</b> {H.escape(v)}"
-                            + (f" &mdash; {H.escape(txt)}" if txt else "") + (f" <span class=eff>{H.escape(eff)}</span>" if eff else "")
+                alls = _t(tot[L_]) if known and L_ != r["default"] and n_rc > 1 else ""
+                opts.append(f"<div class='{'opt def' if L_ == r['default'] else 'opt'}'><b>{L_}</b> {H.escape(_plain(v))}"
+                            + (f" &mdash; {H.escape(_plain(txt))}" if txt else "") + (f" <span class=eff>{H.escape(eff)}</span>" if eff else "")
+                            + (f" <span class=n>(all {n_rc} cases: {alls})</span>" if alls else "")
                             + (" (default, built)" if L_ == r["default"] else "") + "</div>")
             where = f"p{c['sheet']} &middot; " if c.get("sheet") else ""
-            html.append(f"<div class=s><span class=sid>{sid}</span> <b>{c['rule']}</b> <span class=n>{where}{H.escape(c.get('note', ''))}</span>"
+            html.append(f"<div class=s><p class=q><span class=sid>{sid}.</span> {H.escape(_plain(r['q']))} <span class=n>({n_rc} case{'s' if n_rc != 1 else ''})</span></p>"
+                        f"<span class=n>{where}{H.escape(_plain(c.get('note', '')))}</span>"
                         + (f"<div class=pics>{''.join(pics)}</div>" if pics else "") + "".join(opts) + "</div>")
             n_shown += 1
         if ds:
@@ -482,8 +488,8 @@ def build(work, R, C, root, out, parts_path=None, page_html=None):
                                   + (f" <span class=eff>{H.escape(str(d['effect'])[:40])}</span>" if d.get("effect") else "") + "</li>" for d in ds)
                         + "</ul></details>")
         if learnt[k]:
-            html.append(f"<details><summary>{len(learnt[k])} standing rule(s) learnt: " + ", ".join(r for r, _ in learnt[k]) + "</summary><ul class=dl>"
-                        + "".join(f"<li><b>{rid}</b> {H.escape(r['q'])} &rarr; <b>{r.get('answer') or r['default']}</b> "
+            html.append(f"<details><summary>{len(learnt[k])} standing rule(s) learnt</summary><ul class=dl>"
+                        + "".join(f"<li>{H.escape(r['q'])} &rarr; <b>{r.get('answer') or r['default']}</b> "
                                   f"{H.escape(r['options'][r.get('answer') or r['default']])}"
                                   + (" <span class=n>(the curator)</span>" if r.get("answer") else " <span class=n>(default, open)</span>")
                                   + (f" <span class=n>&middot; {H.escape(r.get('basis', ''))}</span>" if r.get("basis") else "") + "</li>"
